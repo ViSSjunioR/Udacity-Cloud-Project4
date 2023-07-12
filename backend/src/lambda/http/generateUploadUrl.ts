@@ -5,7 +5,7 @@ import * as middy from "middy";
 import { cors, httpErrorHandler } from "middy/middlewares";
 import { getUserId } from "../utils";
 import { createLogger } from "../../utils/logger";
-import { createAttachmentPresignedUrl } from "../../helpers/todos";
+import { createAttachmentPresignedUrl } from "../../businessLogic/todos";
 
 const logger = createLogger("generateUploadUrl");
 

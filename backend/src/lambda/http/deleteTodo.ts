@@ -1,33 +1,33 @@
-import 'source-map-support/register'
+import "source-map-support/register";
 
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
-import * as middy from 'middy'
-import { cors, httpErrorHandler } from 'middy/middlewares'
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import * as middy from "middy";
+import { cors, httpErrorHandler } from "middy/middlewares";
 
-import { deleteTodo } from '../../helpers/todos'
-import { getUserId } from '../utils'
-import { createLogger } from '../../utils/logger'
+import { deleteTodo } from "../../businessLogic/todos";
+import { getUserId } from "../utils";
+import { createLogger } from "../../utils/logger";
 
-const logger = createLogger('createTodo')
+const logger = createLogger("createTodo");
 
 export const handler = middy(
   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const todoId = event.pathParameters.todoId
-    const userId = getUserId(event)
+    const todoId = event.pathParameters.todoId;
+    const userId = getUserId(event);
     try {
-      logger.info('Start to delete todo ')
-      await deleteTodo(userId, todoId)
-      logger.info('delete todo sucessfully!')
-      return { statusCode: 200, body: '' }
+      logger.info("Start to delete todo ");
+      await deleteTodo(userId, todoId);
+      logger.info("delete todo sucessfully!");
+      return { statusCode: 200, body: "" };
     } catch (e) {
-      logger.error('Error delete todo', e)
-      return { statusCode: 500, body: 'Internal Server Error' }
+      logger.error("Error delete todo", e);
+      return { statusCode: 500, body: "Internal Server Error" };
     }
   }
-)
+);
 
 handler.use(httpErrorHandler()).use(
   cors({
-    credentials: true
+    credentials: true,
   })
-)
+);
