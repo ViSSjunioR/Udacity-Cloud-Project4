@@ -27,6 +27,28 @@ export const findByUserId = async (userId: string) => {
   return todo.Items;
 };
 
+export const findByUserIdAndName = async (
+  userId: string,
+  searchString: string
+) => {
+  const todo = await docClient
+    .query({
+      TableName: TODOS_TABLE,
+      KeyConditionExpression: "#userId = :userId",
+      ExpressionAttributeNames: { "#userId": "userId", "#_name": "name" },
+      ExpressionAttributeValues: {
+        ":userId": userId,
+        ":searchString": searchString.toLowerCase,
+      },
+      FilterExpression: "contains(lowercase(#_name), :searchString)",
+      ProjectionExpression:
+        "todoId, userId, createdAt, #_name, dueDate, done, attachmentUrl",
+    })
+    .promise();
+
+  return todo.Items;
+};
+
 export const add = async (todo: TodoItem) => {
   await docClient.put({ TableName: TODOS_TABLE, Item: todo }).promise();
 };

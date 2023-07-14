@@ -6,6 +6,7 @@ import { CreateTodoRequest } from "../../requests/CreateTodoRequest";
 import { getUserId } from "../utils";
 import { createTodo } from "../../businessLogic/todos";
 import { createLogger } from "../../utils/logger";
+import { validateDueDate } from "../../helpers/validateTodos";
 
 const logger = createLogger("createTodo");
 
@@ -15,6 +16,13 @@ export const handler = middy(
     const userId = getUserId(event);
 
     try {
+      if (!validateDueDate(newTodo.dueDate)) {
+        return {
+          statusCode: 400,
+          body: JSON.stringify({ message: "dueDate must be after today!" }),
+        };
+      }
+
       const todo = await createTodo(newTodo, userId);
       logger.info("Create todo successfully! ", todo);
 

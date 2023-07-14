@@ -8,10 +8,18 @@ import {
   deleteByUserIdAndTodoId,
   findByUserId,
   updateByUserIdAndTodoId,
+  findByUserIdAndName,
 } from "../dataLayer/todosAcess";
 
 export const getTodosForUser = async (userId: string) => {
   return await findByUserId(userId);
+};
+
+export const findTodosByUserIdAndName = async (
+  userId: string,
+  searchString: string
+) => {
+  return await findByUserIdAndName(userId, searchString);
 };
 
 export const createTodo = async (

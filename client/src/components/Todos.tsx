@@ -14,9 +14,16 @@ import {
   Loader
 } from 'semantic-ui-react'
 
-import { createTodo, deleteTodo, getTodos, patchTodo } from '../api/todos-api'
+import {
+  createTodo,
+  deleteTodo,
+  getTodos,
+  patchTodo,
+  searchTodos
+} from '../api/todos-api'
 import Auth from '../auth/Auth'
 import { Todo } from '../types/Todo'
+import ModalCreateTodo from './ModalCreateTodo'
 
 interface TodosProps {
   auth: Auth
@@ -25,38 +32,43 @@ interface TodosProps {
 
 interface TodosState {
   todos: Todo[]
-  newTodoName: string
+  textSearch: string
   loadingTodos: boolean
 }
 
 export class Todos extends React.PureComponent<TodosProps, TodosState> {
   state: TodosState = {
     todos: [],
-    newTodoName: '',
+    textSearch: '',
     loadingTodos: true
   }
 
-  handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState({ newTodoName: event.target.value })
+  handleChangeTextSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this.setState({ textSearch: event.target.value })
   }
 
   onEditButtonClick = (todoId: string) => {
     this.props.history.push(`/todos/${todoId}/edit`)
   }
 
-  onTodoCreate = async (event: React.ChangeEvent<HTMLButtonElement>) => {
+  addNewTodoList = (newTodo: any) => {
+    this.setState({
+      todos: [...this.state.todos, newTodo]
+    })
+  }
+
+  onSearchTodo = async () => {
     try {
-      const dueDate = this.calculateDueDate()
-      const newTodo = await createTodo(this.props.auth.getIdToken(), {
-        name: this.state.newTodoName,
-        dueDate
-      })
+      const todos = await searchTodos(
+        this.props.auth.getIdToken(),
+        this.state.textSearch
+      )
       this.setState({
-        todos: [...this.state.todos, newTodo],
-        newTodoName: ''
+        todos,
+        loadingTodos: false
       })
-    } catch {
-      alert('Todo creation failed')
+    } catch (e) {
+      alert(`Failed to fetch todos: ${(e as Error).message}`)
     }
   }
 
@@ -64,7 +76,7 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
     try {
       await deleteTodo(this.props.auth.getIdToken(), todoId)
       this.setState({
-        todos: this.state.todos.filter(todo => todo.todoId !== todoId)
+        todos: this.state.todos.filter((todo) => todo.todoId !== todoId)
       })
     } catch {
       alert('Todo deletion failed')
@@ -121,16 +133,28 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
             action={{
               color: 'teal',
               labelPosition: 'left',
-              icon: 'add',
-              content: 'New task',
-              onClick: this.onTodoCreate
+              icon: 'search',
+              content: 'Search task',
+              onClick: this.onSearchTodo
             }}
             fluid
             actionPosition="left"
-            placeholder="To change the world..."
-            onChange={this.handleNameChange}
+            placeholder="Enter name task to search..."
+            onChange={this.handleChangeTextSearch}
           />
         </Grid.Column>
+
+        <Grid.Column width={16}>
+          <Divider />
+        </Grid.Column>
+
+        <Grid.Column width={16}>
+          <ModalCreateTodo
+            auth={this.props.auth}
+            addTodoLists={this.addNewTodoList}
+          />
+        </Grid.Column>
+
         <Grid.Column width={16}>
           <Divider />
         </Grid.Column>
@@ -168,8 +192,11 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
                   checked={todo.done}
                 />
               </Grid.Column>
-              <Grid.Column width={10} verticalAlign="middle">
+              <Grid.Column width={7} verticalAlign="middle">
                 {todo.name}
+              </Grid.Column>
+              <Grid.Column width={3} verticalAlign="middle">
+                {todo.done ? 'Done' : 'Todo'}
               </Grid.Column>
               <Grid.Column width={3} floated="right">
                 {todo.dueDate}

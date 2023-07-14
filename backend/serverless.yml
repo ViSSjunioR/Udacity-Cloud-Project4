@@ -56,6 +56,7 @@ functions:
           - xray:PutTraceSegments
           - xray:PutTelemetryRecords
         Resource: "*"
+
   CreateTodo:
     handler: src/lambda/http/createTodo.handler
     events:
@@ -142,6 +143,28 @@ functions:
       - Effect: Allow
         Action:
           - dynamodb:UpdateItem
+        Resource:
+          - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+          - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_CREATED_AT_INDEX}
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+          - xray:PutTelemetryRecords
+        Resource: "*"
+
+  SearchTodos:
+    handler: src/lambda/http/searchTodos.handler
+    events:
+      - http:
+          method: get
+          path: todos/search
+          cors: true
+          authorizer: Auth
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:DescribeTable
+          - dynamodb:Query
         Resource:
           - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
           - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_CREATED_AT_INDEX}
